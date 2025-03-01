@@ -1,6 +1,7 @@
 # AugmentOS-Cloud-Example-App
 
-![New Project](https://github.com/user-attachments/assets/8eaf26d6-595e-470e-a48d-0a5310799e4e)
+
+![header](https://github.com/user-attachments/assets/f69defec-7011-45f2-b258-94e6c712a758)
 
 
 ### Set up ngrok
@@ -49,7 +50,7 @@ const app = new ExampleAugmentOSApp({
 });
 ```
 
-7. Run your app with `bun start index.ts`
+7. Run your app with `bun run index.ts`
 
 8. To expose your app to the internet (and thus AugmentOS) with ngrok, run: `ngrok http --url=civil-frankly-javelin.ngrok-free.app 3000`
     * `3000` is the port. It must match what is in the app config. If you entered `port: 8080`, use `8080` for ngrok instead.
