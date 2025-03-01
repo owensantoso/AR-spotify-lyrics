@@ -13,8 +13,6 @@ class ExampleAugmentOSApp extends TpaServer {
         });
       }),
 
-      session.events.onButtonPress((data) => {}),
-
       session.events.onPhoneNotifications((data) => {}),
 
       session.events.onGlassesBattery((data) => {}),
