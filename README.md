@@ -1,5 +1,7 @@
 # AugmentOS-Cloud-Example-App
 
+<img width="546" alt="image" src="https://github.com/user-attachments/assets/bf85d1ef-c71a-472b-ad8e-5a70d36ef709" />
+
 ### Set up ngrok
 
 1. `brew install ngrok`
