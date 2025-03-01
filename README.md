@@ -1,6 +1,7 @@
 # AugmentOS-Cloud-Example-App
 
-<img width="546" alt="image" src="https://github.com/user-attachments/assets/bf85d1ef-c71a-472b-ad8e-5a70d36ef709" />
+![New Project](https://github.com/user-attachments/assets/8eaf26d6-595e-470e-a48d-0a5310799e4e)
+
 
 ### Set up ngrok
 
