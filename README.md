@@ -3,6 +3,11 @@
 
 ![header](https://github.com/user-attachments/assets/f69defec-7011-45f2-b258-94e6c712a758)
 
+### Download AugmentOS on your phone
+
+[Download links](https://drive.google.com/drive/folders/1l99ffBiWHnAe06HSJcgjIG-SnMuio70_?usp=sharing)
+
+You *probably* want staging, unless you want raw audio bytes. If you want raw audio bytes, you want dev.
 
 ### Set up ngrok
 
