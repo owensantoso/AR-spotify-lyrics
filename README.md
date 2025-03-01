@@ -28,6 +28,8 @@
         * If you Ngrok URL is: `https://my-static-url.ngrok-free.app`
         * Then you enter `https://my-static-url.ngrok-free.app/webhook`
 
+![guide](https://github.com/user-attachments/assets/681df211-ea1a-4fd9-9563-f1f7c81e9565)
+
 ### Get your APP running!
 
 1. [Install bun](https://bun.sh/docs/installation)
