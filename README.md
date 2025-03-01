@@ -6,9 +6,11 @@
 
 2. Make an ngrok account
 
-3. Use ngrok to make a static address/URL
+3. [Use ngrok to make a static address/URL](https://dashboard.ngrok.com/)
 
 ### Register your APP with AugmentOS
+
+<img width="181" alt="image" src="https://github.com/user-attachments/assets/36192c2b-e1ba-423b-90de-47ff8cd91318" />
 
 1. Navigate to [AugmentOS.dev](https://augmentos.dev/)
 
