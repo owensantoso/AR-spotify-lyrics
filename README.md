@@ -51,7 +51,7 @@ const app = new ExampleAugmentOSApp({
   packageName: 'org.yourlastname.yoursocialsecuritynumber', // make sure this matches your app in dev console
   apiKey: 'your_api_key', // Not used right now, can be anything
   port: 3000, // The port you're hosting the server on
-  augmentOSWebsocketUrl: 'wss://dev.augmentos.org/tpa-ws' //AugmentOS url
+  augmentOSWebsocketUrl: 'wss://staging.augmentos.org/tpa-ws' //IMPORTANT: USE STAGING
 });
 ```
 
