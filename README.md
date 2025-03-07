@@ -7,7 +7,8 @@
 
 [Download links](https://drive.google.com/drive/folders/1l99ffBiWHnAe06HSJcgjIG-SnMuio70_?usp=sharing)
 
-You *probably* want staging, unless you want raw audio bytes. If you want raw audio bytes, you want dev.
+Use the APK that is pointing to the *staging* env, as currently our dev / prod environments do not have the appstore
+
 
 ### Set up ngrok
 
