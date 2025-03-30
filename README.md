@@ -1,16 +1,10 @@
 # AugmentOS-Cloud-Example-App
 
+### Install AugmentOS on your phone
 
-![header](https://github.com/user-attachments/assets/f69defec-7011-45f2-b258-94e6c712a758)
+AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
 
-### Download AugmentOS on your phone
-
-[Download links](https://drive.google.com/drive/folders/1l99ffBiWHnAe06HSJcgjIG-SnMuio70_?usp=sharing)
-
-Use the APK that is pointing to the *staging* env, as currently our dev / prod environments do not have the appstore
-
-
-### Set up ngrok
+### (Easiest way to get started) Set up ngrok
 
 1. `brew install ngrok`
 
@@ -22,20 +16,15 @@ Use the APK that is pointing to the *staging* env, as currently our dev / prod e
 
 <img width="181" alt="image" src="https://github.com/user-attachments/assets/36192c2b-e1ba-423b-90de-47ff8cd91318" />
 
-1. Navigate to [AugmentOS.dev](https://augmentos.dev/)
+1. Navigate to [console.AugmentOS.org](https://console.AugmentOS.org/)
 
-2. Click "Sign In", and log in with the same Google account you're using for AugmentOS
+2. Click "Sign In", and log in with the same account you're using for AugmentOS
 
 3. Click "Create App"
 
-4. Set a UNIQUE package name like `org.yourlastname.yoursocialsecuritynumber`
+4. Set a unique package name like `com.yourName.yourAppName`
 
-5. For webhook url, enter your ngrok's static url, appended by `webhook`
-    * EX: 
-        * If you Ngrok URL is: `https://my-static-url.ngrok-free.app`
-        * Then you enter `https://my-static-url.ngrok-free.app/webhook`
-
-![guide](https://github.com/user-attachments/assets/681df211-ea1a-4fd9-9563-f1f7c81e9565)
+5. For "Public URL", enter your Ngrok's static URL
 
 ### Get your APP running!
 
@@ -45,14 +34,13 @@ Use the APK that is pointing to the *staging* env, as currently our dev / prod e
 
 3. cd into your repo, then type `bun install`
 
-4. Edit your `index.ts` to match the app you registered at [AugmentOS.dev](https://augmentos.dev/)
+4. Edit your `index.ts` to match the app you registered at [console.AugmentOS.org](https://console.AugmentOS.org/)
     
 ```typescript
 const app = new ExampleAugmentOSApp({
-  packageName: 'org.yourlastname.yoursocialsecuritynumber', // make sure this matches your app in dev console
-  apiKey: 'your_api_key', // Not used right now, can be anything
-  port: 3000, // The port you're hosting the server on
-  augmentOSWebsocketUrl: 'wss://staging.augmentos.org/tpa-ws' //IMPORTANT: USE STAGING
+  packageName: 'com.yourName.yourAppName', // The packageName you specified on console.AugmentOS.org
+  apiKey: 'your_api_key', // Get this from console.AugmentOS.org
+  port: 3000 // The port you're hosting the server on
 });
 ```
 
