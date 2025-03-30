@@ -7,7 +7,8 @@
 
 [Download links](https://drive.google.com/drive/folders/1l99ffBiWHnAe06HSJcgjIG-SnMuio70_?usp=sharing)
 
-You *probably* want staging, unless you want raw audio bytes. If you want raw audio bytes, you want dev.
+Use the APK that is pointing to the *staging* env, as currently our dev / prod environments do not have the appstore
+
 
 ### Set up ngrok
 
@@ -51,7 +52,7 @@ const app = new ExampleAugmentOSApp({
   packageName: 'org.yourlastname.yoursocialsecuritynumber', // make sure this matches your app in dev console
   apiKey: 'your_api_key', // Not used right now, can be anything
   port: 3000, // The port you're hosting the server on
-  augmentOSWebsocketUrl: 'wss://dev.augmentos.org/tpa-ws' //AugmentOS url
+  augmentOSWebsocketUrl: 'wss://staging.augmentos.org/tpa-ws' //IMPORTANT: USE STAGING
 });
 ```
 
