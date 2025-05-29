@@ -30,21 +30,35 @@ AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
 
 1. [Install bun](https://bun.sh/docs/installation)
 
-2. Clone this repo: `git clone git@github.com:AugmentOS-Community/AugmentOS-Cloud-Example-App.git`
+2. Create a new repo from this template using the `Use this template` dropdown in the upper right or the following command: `gh repo create --template AugmentOS-Community/AugmentOS-Cloud-Example-App`
 
-3. cd into your repo, then type `bun install`
+    ![Create repo from template](https://github.com/user-attachments/assets/c10e14e8-2dc5-4dfa-adac-dd334c1b73a5)
 
-4. Edit your `index.ts` to match the app you registered at [console.AugmentOS.org](https://console.AugmentOS.org/)
-    
-```typescript
-const app = new ExampleAugmentOSApp({
-  packageName: 'com.yourName.yourAppName', // The packageName you specified on console.AugmentOS.org
-  apiKey: 'your_api_key', // Get this from console.AugmentOS.org
-  port: 3000 // The port you're hosting the server on
-});
-```
+3. Clone your new repo locally: `git clone <your-repo-url>`
 
-7. Run your app with `bun run index.ts`
+4. cd into your repo, then type `bun install`
 
-8. To expose your app to the internet (and thus AugmentOS) with ngrok, run: `ngrok http --url=<YOUR_NGROK_URL_HERE> 3000`
-    * `3000` is the port. It must match what is in the app config. If you entered `port: 8080`, use `8080` for ngrok instead.
+5. Set up your environment variables:
+   * Create a `.env` file in the root directory by copying the example: `cp .env.example .env`
+   * Edit the `.env` file with your app details:
+     ```
+     PORT=3000
+     PACKAGE_NAME=com.yourName.yourAppName
+     API_KEY=your_api_key_from_console
+     ```
+   * Make sure the `PACKAGE_NAME` matches what you registered in the AugmentOS Console
+   * Get your `API_KEY` from the AugmentOS Developer Console
+
+6. Run your app with `bun run dev`
+
+7. To expose your app to the internet (and thus AugmentOS) with ngrok, run: `ngrok http --url=<YOUR_NGROK_URL_HERE> 3000`
+    * `3000` is the port. It must match what is in the app config. For example, if you entered `port: 8080`, use `8080` for ngrok instead.
+
+
+### Next Steps
+
+Check out the full documentation at [docs.AugmentOS.org](https://docs.augmentos.org/core-concepts)
+
+#### Subscribing to events
+
+You can listen for transcriptions, translations, and other events within the onSession function.
