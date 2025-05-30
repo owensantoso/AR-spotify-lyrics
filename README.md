@@ -26,6 +26,8 @@ AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
 
 5. For "Public URL", enter your Ngrok's static URL
 
+6. In the edit app screen, add the microphone permission
+
 ### Get your APP running!
 
 1. [Install bun](https://bun.sh/docs/installation)

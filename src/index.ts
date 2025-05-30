@@ -21,6 +21,7 @@ class ExampleAugmentOSApp extends TpaServer {
     session.layouts.showTextWall("Example App is ready!");
 
     // Handle real-time transcription
+    // requires microphone permission to be set in the developer console
     const eventHandlers = [
       session.events.onTranscription((data) => {
         if (data.isFinal) {
