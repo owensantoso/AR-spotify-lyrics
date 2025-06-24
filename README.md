@@ -14,8 +14,6 @@ MentraOS install links: [mentra.glass/install](https://mentra.glass/install)
 
 ### Register your App with MentraOS
 
-<img width="181" alt="image" src="https://github.com/user-attachments/assets/36192c2b-e1ba-423b-90de-47ff8cd91318" />
-
 1. Navigate to [console.mentra.glass](https://console.mentra.glass/)
 
 2. Click "Sign In", and log in with the same account you're using for MentraOS
