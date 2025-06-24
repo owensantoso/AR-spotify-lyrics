@@ -1,16 +1,16 @@
-import { TpaServer, TpaSession, ViewType } from '@augmentos/sdk';
+import { TpaServer, TpaSession, ViewType } from '@mentra/sdk';
 
 
 const PACKAGE_NAME = process.env.PACKAGE_NAME ?? (() => { throw new Error('PACKAGE_NAME is not set in .env file'); })();
-const AUGMENTOS_API_KEY = process.env.AUGMENTOS_API_KEY ?? (() => { throw new Error('AUGMENTOS_API_KEY is not set in .env file'); })();
+const MENTRAOS_API_KEY = process.env.MENTRAOS_API_KEY ?? (() => { throw new Error('MENTRAOS_API_KEY is not set in .env file'); })();
 const PORT = parseInt(process.env.PORT || '3000');
 
-class ExampleAugmentOSApp extends TpaServer {
+class ExampleMentraOSApp extends TpaServer {
 
   constructor() {
     super({
       packageName: PACKAGE_NAME,
-      apiKey: AUGMENTOS_API_KEY,
+      apiKey: MENTRAOS_API_KEY,
       port: PORT,
     });
   }
@@ -43,8 +43,8 @@ class ExampleAugmentOSApp extends TpaServer {
 }
 
 // Start the server
-// DEV CONSOLE URL: https://console.augmentos.org/
+// DEV CONSOLE URL: https://console.mentra.glass/
 // Get your webhook URL from ngrok (or whatever public URL you have)
-const app = new ExampleAugmentOSApp();
+const app = new ExampleMentraOSApp();
 
 app.start().catch(console.error);

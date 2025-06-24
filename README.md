@@ -2,7 +2,7 @@
 
 ### Install AugmentOS on your phone
 
-AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
+AugmentOS install links: [mentra.glass/install](https://mentra.glass/install)
 
 ### (Easiest way to get started) Set up ngrok
 
@@ -16,7 +16,7 @@ AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
 
 <img width="181" alt="image" src="https://github.com/user-attachments/assets/36192c2b-e1ba-423b-90de-47ff8cd91318" />
 
-1. Navigate to [console.AugmentOS.org](https://console.AugmentOS.org/)
+1. Navigate to [console.mentra.glass](https://console.mentra.glass/)
 
 2. Click "Sign In", and log in with the same account you're using for AugmentOS
 
@@ -46,7 +46,7 @@ AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
      ```
      PORT=3000
      PACKAGE_NAME=com.yourName.yourAppName
-     AUGMENTOS_API_KEY=your_api_key_from_console
+     MENTRAOS_API_KEY=your_api_key_from_console
      ```
    * Make sure the `PACKAGE_NAME` matches what you registered in the AugmentOS Console
    * Get your `API_KEY` from the AugmentOS Developer Console
@@ -59,7 +59,7 @@ AugmentOS install links: [AugmentOS.org/install](https://AugmentOS.org/install)
 
 ### Next Steps
 
-Check out the full documentation at [docs.AugmentOS.org](https://docs.augmentos.org/core-concepts)
+Check out the full documentation at [docs.mentra.glass](https://docs.mentra.glass/core-concepts)
 
 #### Subscribing to events
 
