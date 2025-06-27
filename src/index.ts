@@ -1,11 +1,11 @@
-import { TpaServer, TpaSession, ViewType } from '@mentra/sdk';
+import { AppServer, AppSession, ViewType } from '@mentra/sdk';
 
 
 const PACKAGE_NAME = process.env.PACKAGE_NAME ?? (() => { throw new Error('PACKAGE_NAME is not set in .env file'); })();
 const MENTRAOS_API_KEY = process.env.MENTRAOS_API_KEY ?? (() => { throw new Error('MENTRAOS_API_KEY is not set in .env file'); })();
 const PORT = parseInt(process.env.PORT || '3000');
 
-class ExampleMentraOSApp extends TpaServer {
+class ExampleMentraOSApp extends AppServer {
 
   constructor() {
     super({
@@ -15,30 +15,24 @@ class ExampleMentraOSApp extends TpaServer {
     });
   }
 
-  protected async onSession(session: TpaSession, sessionId: string, userId: string): Promise<void> {
-
+  protected async onSession(session: AppSession, sessionId: string, userId: string): Promise<void> {
     // Show welcome message
     session.layouts.showTextWall("Example App is ready!");
 
     // Handle real-time transcription
     // requires microphone permission to be set in the developer console
-    const eventHandlers = [
-      session.events.onTranscription((data) => {
-        if (data.isFinal) {
-          session.layouts.showTextWall("You said: " + data.text, {
-            view: ViewType.MAIN,
-            durationMs: 3000
-          });
-        }
-      }),
+    session.events.onTranscription((data) => {
+      if (data.isFinal) {
+        session.layouts.showTextWall("You said: " + data.text, {
+          view: ViewType.MAIN,
+          durationMs: 3000
+        });
+      }
+    })
 
-      session.events.onGlassesBattery((data) => {
-        console.log('Glasses battery:', data);
-      })
-    ];
-
-    // Add cleanup handlers
-    eventHandlers.forEach(eventHandler => this.addCleanupHandler(eventHandler));
+    session.events.onGlassesBattery((data) => {
+      console.log('Glasses battery:', data);
+    })
   }
 }
 
