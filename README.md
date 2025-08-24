@@ -1,4 +1,4 @@
-# MentraOS-Cloud-Example-App
+# MentraOS-Display-Example-App
 
 ### Install MentraOS on your phone
 
