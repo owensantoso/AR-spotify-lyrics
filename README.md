@@ -2,6 +2,12 @@
 
 Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/mentra-g1-app/docs/README.md).
 
+## Demo
+
+<video src="docs/media/demo.mp4" controls muted playsinline width="360"></video>
+
+If GitHub does not render the embedded player in your view, open the file directly: [demo.mp4](docs/media/demo.mp4)
+
 ### Install MentraOS on your phone
 
 MentraOS install links: [mentra.glass/install](https://mentra.glass/install)
