@@ -11,6 +11,10 @@ Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/men
 Fallback: [![Demo video](docs/media/demo-poster.png)](docs/media/demo.mp4)
 Direct file link: [demo.mp4](docs/media/demo.mp4)
 
+
+https://github.com/user-attachments/assets/bc6e4780-f9d0-4d90-8a0c-5dedd3c63da8
+
+
 ## What It Does
 
 - Connects to Spotify and reads the currently playing track
