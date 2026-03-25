@@ -6,7 +6,7 @@
   Small entrypoint that starts the app server.
 
 - [`src/app.ts`](/Users/macintoso/Documents/VSCode/mentra-g1-app/src/app.ts)
-  Main Mentra app orchestration. Wires routes, sessions, polling, display updates, and service calls.
+  Main Mentra app orchestration. Wires routes, sessions, polling, display updates, touch handlers, and voice command handlers.
 
 - [`src/config.ts`](/Users/macintoso/Documents/VSCode/mentra-g1-app/src/config.ts)
   Environment-derived runtime config.

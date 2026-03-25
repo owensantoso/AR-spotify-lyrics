@@ -30,6 +30,11 @@ It is not intended to be a general platform, multi-user service, or production-r
 - The remaining lines show the current lyric and nearby context.
 - When romanization is enabled for the current script, romanized text is preferred.
 - During long instrumental gaps, the app shows the title plus placeholder dots instead of going blank.
+- Voice commands are available when transcription events are flowing:
+  - `spotify play`
+  - `spotify pause`
+  - `spotify next`
+  - `spotify previous`
 
 ## Current Technical Constraints
 

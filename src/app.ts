@@ -241,11 +241,17 @@ export class MentraLyricsApp extends AppServer {
         return;
       }
 
-      const text = data.text.toLowerCase();
-      const isPause = /\bpause\b/.test(text) || /\bstop\b/.test(text);
-      const isPlay = /\bplay\b/.test(text) || /\bresume\b/.test(text);
+      const text = data.text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!text.includes('spotify')) {
+        return;
+      }
 
-      if (!isPause && !isPlay) {
+      const isPause = /\bspotify\b.*\bpause\b/.test(text);
+      const isPlay = /\bspotify\b.*\b(play|resume)\b/.test(text);
+      const isNext = /\bspotify\b.*\b(next|skip)\b/.test(text);
+      const isPrevious = /\bspotify\b.*\b(previous|prev|back)\b/.test(text);
+
+      if (!isPause && !isPlay && !isNext && !isPrevious) {
         return;
       }
 
@@ -272,6 +278,26 @@ export class MentraLyricsApp extends AppServer {
           .catch((error) => {
             console.error(`[Spotify] Voice play failed for session ${sessionId}:`, error);
             this.showMainText(session, 'Play failed');
+          });
+        return;
+      }
+
+      if (isNext) {
+        void this.spotify.nextTrack()
+          .then(() => this.showMainText(session, 'Spotify next track'))
+          .catch((error) => {
+            console.error(`[Spotify] Voice next failed for session ${sessionId}:`, error);
+            this.showMainText(session, 'Next failed');
+          });
+        return;
+      }
+
+      if (isPrevious) {
+        void this.spotify.previousTrack()
+          .then(() => this.showMainText(session, 'Spotify previous track'))
+          .catch((error) => {
+            console.error(`[Spotify] Voice previous failed for session ${sessionId}:`, error);
+            this.showMainText(session, 'Previous failed');
           });
       }
     });

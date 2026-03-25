@@ -156,6 +156,20 @@ export class SpotifyService {
     }
   }
 
+  async nextTrack(): Promise<void> {
+    const response = await this.spotifyRequest('https://api.spotify.com/v1/me/player/next', { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Spotify next failed with status ${response.status}`);
+    }
+  }
+
+  async previousTrack(): Promise<void> {
+    const response = await this.spotifyRequest('https://api.spotify.com/v1/me/player/previous', { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Spotify previous failed with status ${response.status}`);
+    }
+  }
+
   private async exchangeCode(code: string): Promise<void> {
     const body = new URLSearchParams({
       grant_type: 'authorization_code',

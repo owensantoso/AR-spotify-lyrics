@@ -16,6 +16,11 @@ https://github.com/user-attachments/assets/bc6e4780-f9d0-4d90-8a0c-5dedd3c63da8
 - Displays title + lyric context on G1
 - Supports optional Chinese pinyin, Japanese romanization, and Korean romanization
 - Exposes a `/webview` settings page in Mentra iOS app
+- Supports voice playback commands:
+  - `spotify play`
+  - `spotify pause`
+  - `spotify next`
+  - `spotify previous`
 - Persists Spotify tokens and settings locally to reduce restart friction
 
 ## Quick Start
