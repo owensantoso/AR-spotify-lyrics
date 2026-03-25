@@ -1,5 +1,7 @@
 # MentraOS-Display-Example-App
 
+Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/mentra-g1-app/docs/README.md).
+
 ### Install MentraOS on your phone
 
 MentraOS install links: [mentra.glass/install](https://mentra.glass/install)
