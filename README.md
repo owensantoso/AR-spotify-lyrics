@@ -6,9 +6,10 @@ Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/men
 
 ## Demo
 
-[![Demo video](docs/media/demo-poster.jpg)](docs/media/demo.mp4)
+<video src="docs/media/demo.mp4" controls width="800"></video>
 
-Click the image to open the video file: [demo.mp4](docs/media/demo.mp4)
+Fallback: [![Demo video](docs/media/demo-poster.png)](docs/media/demo.mp4)
+Direct file link: [demo.mp4](docs/media/demo.mp4)
 
 ## What It Does
 
@@ -55,12 +56,7 @@ https://<your-ngrok-url>/spotify/login
 
 ## Notes on GitHub Video Embeds
 
-GitHub README rendering is inconsistent for inline HTML `<video>` in repository views. The most reliable pattern is:
-
-- commit an `.mp4` file into the repo
-- use a poster image in markdown that links to the `.mp4`
-
-This README uses that pattern.
+This README tries inline HTML `<video>` first and keeps a poster-image fallback link below it for compatibility.
 
 ## Useful Routes
 
