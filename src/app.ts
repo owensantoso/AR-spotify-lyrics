@@ -18,6 +18,8 @@ export class MentraLyricsApp extends AppServer {
   private readonly romanization = new RomanizationService();
   private readonly settings = new SettingsStore();
   private readonly lyricIntervals = new Map<string, ReturnType<typeof setInterval>>();
+  private readonly interactionCleanup = new Map<string, Array<() => void>>();
+  private readonly voiceCommandAt = new Map<string, number>();
   private readonly lastDisplayedContent = new Map<string, string>();
   private readonly lastDisplaySentAt = new Map<string, number>();
   private readonly holdDurationMs = 30000;
@@ -82,6 +84,8 @@ export class MentraLyricsApp extends AppServer {
     }
 
     await this.updateLyricsForSession(session, sessionId);
+    this.registerPlaybackToggleHandlers(session, sessionId);
+    this.registerVoicePlaybackHandlers(session, sessionId);
 
     const interval = setInterval(() => {
       this.updateLyricsForSession(session, sessionId).catch((error) => {
@@ -101,6 +105,10 @@ export class MentraLyricsApp extends AppServer {
 
     this.lastDisplayedContent.delete(sessionId);
     this.lastDisplaySentAt.delete(sessionId);
+    this.voiceCommandAt.delete(sessionId);
+    const cleanupHandlers = this.interactionCleanup.get(sessionId) ?? [];
+    cleanupHandlers.forEach((cleanup) => cleanup());
+    this.interactionCleanup.delete(sessionId);
     this.settings.unlinkSession(sessionId);
     await super.onStop(sessionId, userId, reason);
   }
@@ -180,5 +188,95 @@ export class MentraLyricsApp extends AppServer {
     });
 
     this.showMainTextIfNeeded(session, sessionId, content);
+  }
+
+  private registerPlaybackToggleHandlers(session: AppSession, sessionId: string): void {
+    let lastToggleAt = 0;
+    const canToggle = (): boolean => {
+      const now = Date.now();
+      if (now - lastToggleAt < 700) {
+        return false;
+      }
+      lastToggleAt = now;
+      return true;
+    };
+
+    const onRightSingleTap = async (): Promise<void> => {
+      if (!canToggle()) {
+        return;
+      }
+
+      try {
+        const state = await this.spotify.togglePlayback();
+        this.showMainText(session, state === 'paused' ? 'Spotify paused' : 'Spotify playing');
+      } catch (error) {
+        console.error(`[Spotify] Toggle from tap failed for session ${sessionId}:`, error);
+        this.showMainText(session, 'Spotify toggle failed');
+      }
+    };
+
+    const cleanupTouch = session.events.onTouchEvent('single_tap', (event) => {
+      // SDK touch payload does not expose side; only use explicit right-side hints if present.
+      const serialized = JSON.stringify(event).toLowerCase();
+      if (serialized.includes('right')) {
+        void onRightSingleTap();
+      }
+    });
+
+    const cleanupButton = session.events.onButtonPress((event) => {
+      const buttonId = String(event.buttonId ?? '').toLowerCase();
+      const isRight = buttonId.includes('right');
+      const isSingle = event.pressType === 'short';
+      if (isRight && isSingle) {
+        void onRightSingleTap();
+      }
+    });
+
+    this.interactionCleanup.set(sessionId, [cleanupTouch, cleanupButton]);
+  }
+
+  private registerVoicePlaybackHandlers(session: AppSession, sessionId: string): void {
+    const cleanupVoice = session.events.onTranscription((data) => {
+      if (!data?.isFinal || !data.text) {
+        return;
+      }
+
+      const text = data.text.toLowerCase();
+      const isPause = /\bpause\b/.test(text) || /\bstop\b/.test(text);
+      const isPlay = /\bplay\b/.test(text) || /\bresume\b/.test(text);
+
+      if (!isPause && !isPlay) {
+        return;
+      }
+
+      const now = Date.now();
+      const lastAt = this.voiceCommandAt.get(sessionId) ?? 0;
+      if (now - lastAt < 1200) {
+        return;
+      }
+      this.voiceCommandAt.set(sessionId, now);
+
+      if (isPause) {
+        void this.spotify.pausePlayback()
+          .then(() => this.showMainText(session, 'Spotify paused'))
+          .catch((error) => {
+            console.error(`[Spotify] Voice pause failed for session ${sessionId}:`, error);
+            this.showMainText(session, 'Pause failed');
+          });
+        return;
+      }
+
+      if (isPlay) {
+        void this.spotify.playPlayback()
+          .then(() => this.showMainText(session, 'Spotify playing'))
+          .catch((error) => {
+            console.error(`[Spotify] Voice play failed for session ${sessionId}:`, error);
+            this.showMainText(session, 'Play failed');
+          });
+      }
+    });
+
+    const existing = this.interactionCleanup.get(sessionId) ?? [];
+    this.interactionCleanup.set(sessionId, [...existing, cleanupVoice]);
   }
 }

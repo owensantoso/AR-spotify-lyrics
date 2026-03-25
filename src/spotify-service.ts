@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { Request, Response as ExpressResponse } from 'express';
 
 import {
   SPOTIFY_CLIENT_ID,
@@ -24,7 +24,7 @@ export class SpotifyService {
     return this.spotifyTokens !== null;
   }
 
-  async handleStatus(_req: Request, res: Response): Promise<void> {
+  async handleStatus(_req: Request, res: ExpressResponse): Promise<void> {
     const track = await this.getCurrentlyPlaying().catch((error) => {
       return { error: error instanceof Error ? error.message : String(error) };
     });
@@ -37,7 +37,7 @@ export class SpotifyService {
     });
   }
 
-  handleLogin(_req: Request, res: Response): void {
+  handleLogin(_req: Request, res: ExpressResponse): void {
     if (!this.isConfigured()) {
       res.status(500).send('Spotify env vars missing. Set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REDIRECT_URI.');
       return;
@@ -57,7 +57,7 @@ export class SpotifyService {
     res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
   }
 
-  async handleCallback(req: Request, res: Response): Promise<void> {
+  async handleCallback(req: Request, res: ExpressResponse): Promise<void> {
     const code = typeof req.query.code === 'string' ? req.query.code : null;
     const state = typeof req.query.state === 'string' ? req.query.state : null;
 
@@ -126,6 +126,36 @@ export class SpotifyService {
     };
   }
 
+  async togglePlayback(): Promise<'paused' | 'playing'> {
+    const playbackState = await this.getPlaybackState();
+    const shouldPause = playbackState?.is_playing === true;
+
+    const endpoint = shouldPause
+      ? 'https://api.spotify.com/v1/me/player/pause'
+      : 'https://api.spotify.com/v1/me/player/play';
+
+    const response = await this.spotifyRequest(endpoint, { method: 'PUT' });
+    if (!response.ok) {
+      throw new Error(`Spotify toggle playback failed with status ${response.status}`);
+    }
+
+    return shouldPause ? 'paused' : 'playing';
+  }
+
+  async playPlayback(): Promise<void> {
+    const response = await this.spotifyRequest('https://api.spotify.com/v1/me/player/play', { method: 'PUT' });
+    if (!response.ok) {
+      throw new Error(`Spotify play failed with status ${response.status}`);
+    }
+  }
+
+  async pausePlayback(): Promise<void> {
+    const response = await this.spotifyRequest('https://api.spotify.com/v1/me/player/pause', { method: 'PUT' });
+    if (!response.ok) {
+      throw new Error(`Spotify pause failed with status ${response.status}`);
+    }
+  }
+
   private async exchangeCode(code: string): Promise<void> {
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -160,12 +190,12 @@ export class SpotifyService {
     this.persist();
   }
 
-  private async refreshTokenIfNeeded(): Promise<void> {
+  private async refreshTokenIfNeeded(force = false): Promise<void> {
     if (!this.spotifyTokens) {
       throw new Error('Spotify is not authorized');
     }
 
-    if (Date.now() < this.spotifyTokens.expiresAt) {
+    if (!force && Date.now() < this.spotifyTokens.expiresAt) {
       return;
     }
 
@@ -201,6 +231,49 @@ export class SpotifyService {
       expiresAt: Date.now() + (data.expires_in * 1000) - 60_000,
     };
     this.persist();
+  }
+
+  private async getPlaybackState(): Promise<{ is_playing: boolean } | null> {
+    const response = await this.spotifyRequest('https://api.spotify.com/v1/me/player');
+    if (response.status === 204) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Spotify playback state failed with status ${response.status}`);
+    }
+
+    const data = await response.json() as { is_playing?: boolean };
+    return { is_playing: Boolean(data.is_playing) };
+  }
+
+  private async spotifyRequest(input: string, init?: RequestInit): Promise<globalThis.Response> {
+    if (!this.spotifyTokens) {
+      throw new Error('Spotify is not authorized');
+    }
+
+    await this.refreshTokenIfNeeded();
+
+    let response = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers ?? {}),
+        Authorization: `Bearer ${this.spotifyTokens.accessToken}`,
+      },
+    });
+
+    if (response.status === 401) {
+      await this.refreshTokenIfNeeded(true);
+      response = await fetch(input, {
+        ...init,
+        headers: {
+          ...(init?.headers ?? {}),
+          Authorization: `Bearer ${this.spotifyTokens.accessToken}`,
+        },
+      });
+    }
+
+    return response;
   }
 
   private persist(): void {

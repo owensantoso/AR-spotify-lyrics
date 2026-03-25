@@ -10,7 +10,11 @@ export const PORT = parseInt(process.env.PORT || '3000', 10);
 export const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 export const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 export const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI;
-export const SPOTIFY_SCOPE = 'user-read-currently-playing';
+export const SPOTIFY_SCOPE = [
+  'user-read-currently-playing',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+].join(' ');
 
 export function isSpotifyConfigured(): boolean {
   return Boolean(SPOTIFY_CLIENT_ID && SPOTIFY_CLIENT_SECRET && SPOTIFY_REDIRECT_URI);
