@@ -3,7 +3,7 @@ node_modules/
 bun.lock
 .DS_Store
 *.log
-.local/state/
+.local/
 # VSCode
 .vscode/
 # Mac system files
