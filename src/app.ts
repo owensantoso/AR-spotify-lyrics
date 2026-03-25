@@ -241,40 +241,45 @@ export class MentraLyricsApp extends AppServer {
         return;
       }
 
+      console.log(`[Voice] Final transcript for ${sessionId}: "${data.text}"`);
       const text = data.text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      console.log(`[Voice] Normalized transcript for ${sessionId}: "${text}"`);
       if (!text.includes('spotify')) {
+        console.log(`[Voice] Ignored transcript for ${sessionId}: missing spotify keyword`);
         return;
       }
 
+      const isSkipToChorus = matchesSkipToChorus(text);
       const skipSeconds = extractSpotifyCommandSeconds(text, 'skip');
       const backSeconds = extractSpotifyCommandSeconds(text, 'back');
       const isPause = /\bspotify\b.*\bpause\b/.test(text);
       const isPlay = /\bspotify\b.*\b(play|resume)\b/.test(text);
-      const hasSkipWord = /\bspotify\b.*\bskip\b/.test(text);
-      const hasBackWord = /\bspotify\b.*\bback\b/.test(text);
-      const isNext = /\bspotify\b.*\bnext\b.*\bsong\b/.test(text) || (hasSkipWord && skipSeconds === null);
-      const isPrevious = /\bspotify\b.*\b(previous|prev)\b.*\bsong\b/.test(text) || (hasBackWord && backSeconds === null);
+      const isNext = /\bspotify\b.*\bnext\b.*\bsong\b/.test(text);
+      const isPrevious = /\bspotify\b.*\b(previous|prev)\b.*\bsong\b/.test(text);
       const isChineseToggle = /\bspotify\b.*\bchinese\b.*\btoggle\b/.test(text);
       const isKoreanToggle = /\bspotify\b.*\bkorean\b.*\btoggle\b/.test(text);
       const isJapaneseToggle = /\bspotify\b.*\bjapanese\b.*\btoggle\b/.test(text);
       const isDelayIncrease = /\bspotify\b.*\b(delay increase|increase delay)\b/.test(text);
       const isDelayDecrease = /\bspotify\b.*\b(delay decrease|decrease delay)\b/.test(text);
 
-      if (!isPause && !isPlay && !isNext && !isPrevious &&
+      if (!isPause && !isPlay && !isNext && !isPrevious && !isSkipToChorus &&
         skipSeconds === null && backSeconds === null &&
         !isChineseToggle && !isKoreanToggle && !isJapaneseToggle &&
         !isDelayIncrease && !isDelayDecrease) {
+        console.log(`[Voice] No command matched for ${sessionId}`);
         return;
       }
 
       const now = Date.now();
       const lastAt = this.voiceCommandAt.get(sessionId) ?? 0;
       if (now - lastAt < 1200) {
+        console.log(`[Voice] Ignored transcript for ${sessionId}: throttled`);
         return;
       }
       this.voiceCommandAt.set(sessionId, now);
 
       if (isPause) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify pause`);
         void this.spotify.pausePlayback()
           .then(() => this.showMainText(session, 'Spotify paused'))
           .catch((error) => {
@@ -285,6 +290,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isPlay) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify play`);
         void this.spotify.playPlayback()
           .then(() => this.showMainText(session, 'Spotify playing'))
           .catch((error) => {
@@ -294,7 +300,14 @@ export class MentraLyricsApp extends AppServer {
         return;
       }
 
+      if (isSkipToChorus) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify skip to chorus`);
+        void this.skipToNextChorus(session, sessionId);
+        return;
+      }
+
       if (isNext) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify next song`);
         void this.spotify.nextTrack()
           .then(() => this.showMainText(session, 'Spotify next track'))
           .catch((error) => {
@@ -305,6 +318,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (skipSeconds !== null) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify skip ${skipSeconds}`);
         void this.spotify.seekBySeconds(skipSeconds)
           .then(() => this.showMainText(session, `Spotify skip +${skipSeconds}s`))
           .catch((error) => {
@@ -315,6 +329,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (backSeconds !== null) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify back ${backSeconds}`);
         void this.spotify.seekBySeconds(-backSeconds)
           .then(() => this.showMainText(session, `Spotify back -${backSeconds}s`))
           .catch((error) => {
@@ -325,6 +340,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isPrevious) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify previous song`);
         void this.spotify.previousTrack()
           .then(() => this.showMainText(session, 'Spotify previous track'))
           .catch((error) => {
@@ -335,6 +351,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isChineseToggle) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify chinese toggle`);
         const updated = this.settings.toggleRomanizationForSession(sessionId, 'chinese');
         this.showMainText(
           session,
@@ -344,6 +361,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isKoreanToggle) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify korean toggle`);
         const updated = this.settings.toggleRomanizationForSession(sessionId, 'korean');
         this.showMainText(
           session,
@@ -353,6 +371,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isJapaneseToggle) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify japanese toggle`);
         const updated = this.settings.toggleRomanizationForSession(sessionId, 'japanese');
         this.showMainText(
           session,
@@ -362,6 +381,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isDelayIncrease) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify delay increase`);
         const updated = this.settings.adjustDelayForSession(sessionId, 500);
         this.showMainText(
           session,
@@ -371,6 +391,7 @@ export class MentraLyricsApp extends AppServer {
       }
 
       if (isDelayDecrease) {
+        console.log(`[Voice] Command matched for ${sessionId}: spotify delay decrease`);
         const updated = this.settings.adjustDelayForSession(sessionId, -500);
         this.showMainText(
           session,
@@ -382,11 +403,55 @@ export class MentraLyricsApp extends AppServer {
     const existing = this.interactionCleanup.get(sessionId) ?? [];
     this.interactionCleanup.set(sessionId, [...existing, cleanupVoice]);
   }
+
+  private async skipToNextChorus(session: AppSession, sessionId: string): Promise<void> {
+    try {
+      const track = await this.spotify.getCurrentlyPlaying();
+      if (!track) {
+        console.log(`[Voice] Skip to chorus aborted for ${sessionId}: no active track`);
+        this.showMainText(session, 'No active Spotify track');
+        return;
+      }
+
+      const lyrics = await this.lyrics.getLyricsForTrack(track);
+      if (!lyrics) {
+        console.log(`[Voice] Skip to chorus aborted for ${sessionId}: no synced lyrics`);
+        this.showMainText(session, 'No synced lyrics for chorus');
+        return;
+      }
+
+      const chorus = this.lyrics.findNextChorusTime(lyrics, track.progressMs);
+      if (!chorus) {
+        console.log(`[Voice] Skip to chorus aborted for ${sessionId}: no chorus candidate after ${track.progressMs}ms`);
+        this.showMainText(session, 'No next chorus found');
+        return;
+      }
+
+      console.log(
+        `[Voice] Skip to chorus seeking for ${sessionId}: target=${chorus.timeMs} source=${chorus.source} windowSize=${chorus.windowSize} score=${chorus.score}`,
+      );
+      await this.spotify.seekToPositionMs(chorus.timeMs);
+      this.showMainText(
+        session,
+        `Spotify skip to chorus\n${formatTimestampMs(chorus.timeMs)} ${chorus.source === 'repeated-window' ? 'repeat block' : 'repeat line'}`,
+      );
+    } catch (error) {
+      console.error(`[Spotify] Voice skip to chorus failed for session ${sessionId}:`, error);
+      this.showMainText(session, 'Skip to chorus failed');
+    }
+  }
 }
 
 function formatDelayMs(value: number): string {
   const seconds = (value / 1000).toFixed(1);
   return `${seconds}s`;
+}
+
+function formatTimestampMs(value: number): string {
+  const totalSeconds = Math.max(0, Math.floor(value / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 function extractSpotifyCommandSeconds(text: string, command: 'skip' | 'back'): number | null {
@@ -405,4 +470,21 @@ function extractSpotifyCommandSeconds(text: string, command: 'skip' | 'back'): n
   }
 
   return Math.min(600, Math.round(value));
+}
+
+function matchesSkipToChorus(text: string): boolean {
+  if (!text.includes('spotify') || !text.includes('skip')) {
+    return false;
+  }
+
+  const hasChorusWord = /\b(chorus|course|choris|corus)\b/.test(text);
+  if (!hasChorusWord) {
+    return false;
+  }
+
+  if (/\bspotify\b.*\bskip\b.*\b(the|to|too|two)\b.*\b(chorus|course|choris|corus)\b/.test(text)) {
+    return true;
+  }
+
+  return /\bspotify\b.*\bskip\b.*\b(chorus|course|choris|corus)\b/.test(text) && extractSpotifyCommandSeconds(text, 'skip') === null;
 }

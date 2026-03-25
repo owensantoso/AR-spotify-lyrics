@@ -19,8 +19,12 @@ https://github.com/user-attachments/assets/bc6e4780-f9d0-4d90-8a0c-5dedd3c63da8
 - Supports voice playback commands:
   - `spotify play`
   - `spotify pause`
-  - `spotify next`
-  - `spotify previous`
+  - `spotify next song`
+  - `spotify previous song`
+  - `spotify skip x`
+  - `spotify back x`
+  - `spotify skip to chorus`
+    - tolerant of common speech-to-text variants like `skip the chorus`, `skip two chorus`, and `skip the course`
 - Supports voice settings commands:
   - `spotify chinese toggle`
   - `spotify korean toggle`

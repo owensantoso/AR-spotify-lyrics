@@ -1,8 +1,9 @@
-import type { LyricLine, SearchCandidate, SpotifyTrack, TrackLyrics } from './types';
+import type { ChorusMatch, LyricLine, SearchCandidate, SpotifyTrack, TrackLyrics } from './types';
 
 export class LyricsService {
   private readonly lyricsCache = new Map<string, TrackLyrics>();
   private readonly noLyricsCache = new Set<string>();
+  private readonly chorusCache = new Map<string, ChorusMatch[]>();
 
   async getLyricsForTrack(track: SpotifyTrack): Promise<TrackLyrics | null> {
     const trackKey = `${track.id}:${track.durationMs}`;
@@ -46,6 +47,15 @@ export class LyricsService {
     }
 
     return currentIndex;
+  }
+
+  findNextChorusTime(lyrics: TrackLyrics, progressMs: number): ChorusMatch | null {
+    const matches = this.getChorusMatches(lyrics);
+    const nextMatch = matches.find((match) => match.timeMs > progressMs + 1000) ?? null;
+    console.log(
+      `[Lyrics] Chorus lookup for ${lyrics.trackKey}: progress=${progressMs} candidates=${matches.length} next=${nextMatch ? `${nextMatch.timeMs}/${nextMatch.source}` : 'none'}`,
+    );
+    return nextMatch;
   }
 
   private async getLyricsFromLrclib(track: SpotifyTrack): Promise<LyricLine[]> {
@@ -247,6 +257,133 @@ export class LyricsService {
 
   private uniqueNonEmpty(values: string[]): string[] {
     return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+  }
+
+  private getChorusMatches(lyrics: TrackLyrics): ChorusMatch[] {
+    const cached = this.chorusCache.get(lyrics.trackKey);
+    if (cached) {
+      return cached;
+    }
+
+    const repeatedWindows = this.findRepeatedWindows(lyrics.lines);
+    const repeatedLines = repeatedWindows.length > 0 ? [] : this.findRepeatedLines(lyrics.lines);
+    const matches = [...repeatedWindows, ...repeatedLines].sort((a, b) => a.timeMs - b.timeMs);
+    console.log(
+      `[Lyrics] Chorus heuristic for ${lyrics.trackKey}: repeatedWindows=${repeatedWindows.length} repeatedLines=${repeatedLines.length}`,
+    );
+    this.chorusCache.set(lyrics.trackKey, matches);
+    return matches;
+  }
+
+  private findRepeatedWindows(lines: LyricLine[]): ChorusMatch[] {
+    const matchesByKey = new Map<string, Array<{ startIndex: number; totalChars: number }>>();
+
+    for (const windowSize of [4, 3, 2]) {
+      for (let startIndex = 0; startIndex <= lines.length - windowSize; startIndex += 1) {
+        const window = lines.slice(startIndex, startIndex + windowSize);
+        const normalized = window.map((line) => this.normalizeLyricText(line.text));
+        const totalChars = normalized.reduce((sum, text) => sum + text.length, 0);
+
+        if (normalized.some((text) => text.length < 4) || totalChars < (windowSize * 8)) {
+          continue;
+        }
+
+        const key = `${windowSize}:${normalized.join('|')}`;
+        const existing = matchesByKey.get(key) ?? [];
+
+        if (existing.length > 0 && (startIndex - existing[existing.length - 1].startIndex) < windowSize) {
+          continue;
+        }
+
+        existing.push({ startIndex, totalChars });
+        matchesByKey.set(key, existing);
+      }
+    }
+
+    const best = [...matchesByKey.entries()]
+      .map(([key, occurrences]) => {
+        const [windowSizeText] = key.split(':', 1);
+        const windowSize = Number(windowSizeText);
+        const score = occurrences.length * windowSize * occurrences[0].totalChars;
+        const firstTimeMs = lines[occurrences[0].startIndex]?.timeMs ?? 0;
+        const lastTimeMs = lines[occurrences[occurrences.length - 1].startIndex]?.timeMs ?? 0;
+
+        return { occurrences, windowSize, score, spreadMs: lastTimeMs - firstTimeMs };
+      })
+      .filter((candidate) => candidate.occurrences.length >= 2 && candidate.spreadMs >= 30_000)
+      .sort((left, right) => right.score - left.score)[0];
+
+    if (!best) {
+      console.log('[Lyrics] Chorus repeated-window heuristic found no candidate');
+      return [];
+    }
+
+    console.log(
+      `[Lyrics] Chorus repeated-window heuristic selected: occurrences=${best.occurrences.length} windowSize=${best.windowSize} score=${best.score}`,
+    );
+
+    return best.occurrences.map(({ startIndex }) => ({
+      timeMs: lines[startIndex].timeMs,
+      windowSize: best.windowSize,
+      score: best.score,
+      source: 'repeated-window' as const,
+    }));
+  }
+
+  private findRepeatedLines(lines: LyricLine[]): ChorusMatch[] {
+    const occurrencesByText = new Map<string, number[]>();
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const normalized = this.normalizeLyricText(lines[index].text);
+      if (normalized.length < 10) {
+        continue;
+      }
+
+      const existing = occurrencesByText.get(normalized) ?? [];
+      if (existing.length > 0 && (index - existing[existing.length - 1]) < 2) {
+        continue;
+      }
+
+      existing.push(index);
+      occurrencesByText.set(normalized, existing);
+    }
+
+    const best = [...occurrencesByText.entries()]
+      .map(([text, occurrences]) => {
+        const firstTimeMs = lines[occurrences[0]]?.timeMs ?? 0;
+        const lastTimeMs = lines[occurrences[occurrences.length - 1]]?.timeMs ?? 0;
+        const score = occurrences.length * text.length;
+        return { occurrences, score, spreadMs: lastTimeMs - firstTimeMs };
+      })
+      .filter((candidate) => candidate.occurrences.length >= 2 && candidate.spreadMs >= 30_000)
+      .sort((left, right) => right.score - left.score)[0];
+
+    if (!best) {
+      console.log('[Lyrics] Chorus repeated-line heuristic found no candidate');
+      return [];
+    }
+
+    console.log(
+      `[Lyrics] Chorus repeated-line heuristic selected: occurrences=${best.occurrences.length} score=${best.score}`,
+    );
+
+    return best.occurrences.map((index) => ({
+      timeMs: lines[index].timeMs,
+      windowSize: 1,
+      score: best.score,
+      source: 'repeated-line' as const,
+    }));
+  }
+
+  private normalizeLyricText(text: string): string {
+    return text
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/\([^)]*\)/g, ' ')
+      .replace(/\[[^\]]*\]/g, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   private parseSyncedLyrics(text: string): LyricLine[] {

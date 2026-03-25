@@ -170,6 +170,30 @@ export class SpotifyService {
     }
   }
 
+  async seekBySeconds(secondsDelta: number): Promise<{ fromMs: number; toMs: number }> {
+    const playback = await this.getPlaybackSnapshot();
+    if (!playback) {
+      throw new Error('No active playback');
+    }
+
+    const fromMs = Math.max(0, playback.progressMs);
+    const targetMs = Math.max(0, fromMs + Math.round(secondsDelta * 1000));
+    await this.seekToPositionMs(targetMs);
+
+    return { fromMs, toMs: targetMs };
+  }
+
+  async seekToPositionMs(positionMs: number): Promise<void> {
+    const targetMs = Math.max(0, Math.round(positionMs));
+    const response = await this.spotifyRequest(`https://api.spotify.com/v1/me/player/seek?position_ms=${targetMs}`, {
+      method: 'PUT',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Spotify seek failed with status ${response.status}`);
+    }
+  }
+
   private async exchangeCode(code: string): Promise<void> {
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -259,6 +283,20 @@ export class SpotifyService {
 
     const data = await response.json() as { is_playing?: boolean };
     return { is_playing: Boolean(data.is_playing) };
+  }
+
+  private async getPlaybackSnapshot(): Promise<{ progressMs: number } | null> {
+    const response = await this.spotifyRequest('https://api.spotify.com/v1/me/player');
+    if (response.status === 204) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Spotify playback snapshot failed with status ${response.status}`);
+    }
+
+    const data = await response.json() as { progress_ms?: number };
+    return { progressMs: Math.max(0, data.progress_ms ?? 0) };
   }
 
   private async spotifyRequest(input: string, init?: RequestInit): Promise<globalThis.Response> {

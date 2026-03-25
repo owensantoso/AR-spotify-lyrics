@@ -28,6 +28,13 @@ export type SearchCandidate = {
   artist: string;
 };
 
+export type ChorusMatch = {
+  timeMs: number;
+  windowSize: number;
+  score: number;
+  source: 'repeated-window' | 'repeated-line';
+};
+
 export type UserSettings = {
   showPinyin: boolean;
   showJapaneseRomanization: boolean;

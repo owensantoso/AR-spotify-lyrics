@@ -33,8 +33,12 @@ It is not intended to be a general platform, multi-user service, or production-r
 - Voice commands are available when transcription events are flowing:
   - `spotify play`
   - `spotify pause`
-  - `spotify next`
-  - `spotify previous`
+  - `spotify next song`
+  - `spotify previous song`
+  - `spotify skip x`
+  - `spotify back x`
+  - `spotify skip to chorus`
+    - this command is intentionally tolerant of common transcription variants like `skip the chorus`, `skip two chorus`, and `skip the course`
   - `spotify chinese toggle`
   - `spotify korean toggle`
   - `spotify japanese toggle`
@@ -49,6 +53,7 @@ It is not intended to be a general platform, multi-user service, or production-r
 - Lyrics depend on third-party metadata quality and provider availability
 - NetEase fallback is unofficial
 - A local SDK patch is still required for `device_state_update`
+- Chorus detection is heuristic only and is inferred from repeated lyric patterns, not section metadata
 
 ## Out Of Scope
 
