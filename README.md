@@ -1,72 +1,78 @@
-# MentraOS-Display-Example-App
+# AR Spotify Lyrics for Mentra G1
+
+A personal MentraOS app that shows Spotify lyrics on Even Realities G1 glasses, with optional Chinese/Japanese/Korean romanization and live per-user settings.
 
 Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/mentra-g1-app/docs/README.md).
 
 ## Demo
 
-<video src="docs/media/demo.mp4" controls muted playsinline width="360"></video>
+[![Demo video](docs/media/demo-poster.jpg)](docs/media/demo.mp4)
 
-If GitHub does not render the embedded player in your view, open the file directly: [demo.mp4](docs/media/demo.mp4)
+Click the image to open the video file: [demo.mp4](docs/media/demo.mp4)
 
-### Install MentraOS on your phone
+## What It Does
 
-MentraOS install links: [mentra.glass/install](https://mentra.glass/install)
+- Connects to Spotify and reads the currently playing track
+- Fetches synced lyrics (LRCLIB first, NetEase fallback)
+- Displays title + lyric context on G1
+- Supports optional Chinese pinyin, Japanese romanization, and Korean romanization
+- Exposes a `/webview` settings page in Mentra iOS app
+- Persists Spotify tokens and settings locally to reduce restart friction
 
-### (Easiest way to get started) Set up ngrok
+## Quick Start
 
-1. `brew install ngrok`
+1. Install dependencies:
+```bash
+bun install
+```
+2. Create your env file:
+```bash
+cp .env.example .env
+```
+3. Fill in required values in `.env`:
+```env
+PORT=3000
+PACKAGE_NAME=com.yourname.yourapp
+MENTRAOS_API_KEY=your_mentra_api_key
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_REDIRECT_URI=https://your-ngrok-url.ngrok-free.dev/spotify/callback
+```
+4. Run the app:
+```bash
+bun run dev
+```
+5. Expose it with ngrok:
+```bash
+ngrok http 3000
+```
+6. In Mentra developer console, set your app public URL to the ngrok HTTPS URL and ensure `PACKAGE_NAME` exactly matches.
+7. Open Spotify auth:
+```text
+https://<your-ngrok-url>/spotify/login
+```
+8. Launch your app from Mentra iOS app / G1.
 
-2. Make an ngrok account
+## Notes on GitHub Video Embeds
 
-3. [Use ngrok to make a static address/URL](https://dashboard.ngrok.com/)
+GitHub README rendering is inconsistent for inline HTML `<video>` in repository views. The most reliable pattern is:
 
-### Register your App with MentraOS
+- commit an `.mp4` file into the repo
+- use a poster image in markdown that links to the `.mp4`
 
-1. Navigate to [console.mentra.glass](https://console.mentra.glass/)
+This README uses that pattern.
 
-2. Click "Sign In", and log in with the same account you're using for MentraOS
+## Useful Routes
 
-3. Click "Create App"
+- `/spotify/login`
+- `/spotify/callback`
+- `/spotify/status`
+- `/webview`
 
-4. Set a unique package name like `com.yourName.yourAppName`
+## Local Helper Script
 
-5. For "Public URL", enter your Ngrok's static URL
+Use this to restart dev quickly and open Spotify login:
 
-6. In the edit app screen, add the microphone permission
-
-### Get your App running!
-
-1. [Install bun](https://bun.sh/docs/installation)
-
-2. Create a new repo from this template using the `Use this template` dropdown in the upper right or the following command: `gh repo create --template Mentra-Community/MentraOS-Cloud-Example-App`
-
-    ![Create repo from template](https://github.com/user-attachments/assets/c10e14e8-2dc5-4dfa-adac-dd334c1b73a5)
-
-3. Clone your new repo locally: `git clone <your-repo-url>`
-
-4. cd into your repo, then type `bun install`
-
-5. Set up your environment variables:
-   * Create a `.env` file in the root directory by copying the example: `cp .env.example .env`
-   * Edit the `.env` file with your app details:
-     ```
-     PORT=3000
-     PACKAGE_NAME=com.yourName.yourAppName
-     MENTRAOS_API_KEY=your_api_key_from_console
-     ```
-   * Make sure the `PACKAGE_NAME` matches what you registered in the MentraOS Console
-   * Get your `API_KEY` from the MentraOS Developer Console
-
-6. Run your app with `bun run dev`
-
-7. To expose your app to the internet (and thus MentraOS) with ngrok, run: `ngrok http --url=<YOUR_NGROK_URL_HERE> 3000`
-    * `3000` is the port. It must match what is in the app config. For example, if you entered `port: 8080`, use `8080` for ngrok instead.
-
-
-### Next Steps
-
-Check out the full documentation at [docs.mentra.glass](https://docs.mentra.glass/core-concepts)
-
-#### Subscribing to events
-
-You can listen for transcriptions, translations, and other events within the onSession function.
+```bash
+/bin/zsh .local/restart-dev-and-open-login.sh
+```
