@@ -49,13 +49,49 @@ export class SettingsStore {
     return settings;
   }
 
+  toggleRomanizationForSession(sessionId: string, language: 'chinese' | 'korean' | 'japanese'): UserSettings | null {
+    const userId = this.sessionUsers.get(sessionId);
+    if (!userId) {
+      return null;
+    }
+
+    const current = this.getForUser(userId);
+    const updated: UserSettings = {
+      ...current,
+      showPinyin: language === 'chinese' ? !current.showPinyin : current.showPinyin,
+      showKoreanRomanization: language === 'korean' ? !current.showKoreanRomanization : current.showKoreanRomanization,
+      showJapaneseRomanization: language === 'japanese' ? !current.showJapaneseRomanization : current.showJapaneseRomanization,
+    };
+
+    this.userSettings.set(userId, updated);
+    this.persist();
+    return updated;
+  }
+
+  adjustDelayForSession(sessionId: string, deltaMs: number): UserSettings | null {
+    const userId = this.sessionUsers.get(sessionId);
+    if (!userId) {
+      return null;
+    }
+
+    const current = this.getForUser(userId);
+    const updated: UserSettings = {
+      ...current,
+      lyricOffsetMs: this.clampDelay(current.lyricOffsetMs + deltaMs),
+    };
+
+    this.userSettings.set(userId, updated);
+    this.persist();
+    return updated;
+  }
+
   private parseLyricOffset(value: unknown): number {
     const raw = typeof value === 'string' ? Number(value) : DEFAULT_USER_SETTINGS.lyricOffsetMs;
     if (!Number.isFinite(raw)) {
       return DEFAULT_USER_SETTINGS.lyricOffsetMs;
     }
 
-    return Math.max(-3000, Math.min(3000, Math.round(raw / 100) * 100));
+    return this.clampDelay(Math.round(raw / 100) * 100);
   }
 
   private parseTextSetting(value: unknown): string {
@@ -64,5 +100,9 @@ export class SettingsStore {
 
   private persist(): void {
     saveJsonFile(SETTINGS_STATE_PATH, Object.fromEntries(this.userSettings.entries()));
+  }
+
+  private clampDelay(value: number): number {
+    return Math.max(-3000, Math.min(3000, value));
   }
 }

@@ -250,8 +250,15 @@ export class MentraLyricsApp extends AppServer {
       const isPlay = /\bspotify\b.*\b(play|resume)\b/.test(text);
       const isNext = /\bspotify\b.*\b(next|skip)\b/.test(text);
       const isPrevious = /\bspotify\b.*\b(previous|prev|back)\b/.test(text);
+      const isChineseToggle = /\bspotify\b.*\bchinese\b.*\btoggle\b/.test(text);
+      const isKoreanToggle = /\bspotify\b.*\bkorean\b.*\btoggle\b/.test(text);
+      const isJapaneseToggle = /\bspotify\b.*\bjapanese\b.*\btoggle\b/.test(text);
+      const isDelayIncrease = /\bspotify\b.*\b(delay increase|increase delay)\b/.test(text);
+      const isDelayDecrease = /\bspotify\b.*\b(delay decrease|decrease delay)\b/.test(text);
 
-      if (!isPause && !isPlay && !isNext && !isPrevious) {
+      if (!isPause && !isPlay && !isNext && !isPrevious &&
+        !isChineseToggle && !isKoreanToggle && !isJapaneseToggle &&
+        !isDelayIncrease && !isDelayDecrease) {
         return;
       }
 
@@ -299,10 +306,60 @@ export class MentraLyricsApp extends AppServer {
             console.error(`[Spotify] Voice previous failed for session ${sessionId}:`, error);
             this.showMainText(session, 'Previous failed');
           });
+        return;
+      }
+
+      if (isChineseToggle) {
+        const updated = this.settings.toggleRomanizationForSession(sessionId, 'chinese');
+        this.showMainText(
+          session,
+          updated ? `Chinese romanization ${updated.showPinyin ? 'ON' : 'OFF'}` : 'Chinese toggle failed',
+        );
+        return;
+      }
+
+      if (isKoreanToggle) {
+        const updated = this.settings.toggleRomanizationForSession(sessionId, 'korean');
+        this.showMainText(
+          session,
+          updated ? `Korean romanization ${updated.showKoreanRomanization ? 'ON' : 'OFF'}` : 'Korean toggle failed',
+        );
+        return;
+      }
+
+      if (isJapaneseToggle) {
+        const updated = this.settings.toggleRomanizationForSession(sessionId, 'japanese');
+        this.showMainText(
+          session,
+          updated ? `Japanese romanization ${updated.showJapaneseRomanization ? 'ON' : 'OFF'}` : 'Japanese toggle failed',
+        );
+        return;
+      }
+
+      if (isDelayIncrease) {
+        const updated = this.settings.adjustDelayForSession(sessionId, 500);
+        this.showMainText(
+          session,
+          updated ? `Lyric delay ${formatDelayMs(updated.lyricOffsetMs)}` : 'Delay update failed',
+        );
+        return;
+      }
+
+      if (isDelayDecrease) {
+        const updated = this.settings.adjustDelayForSession(sessionId, -500);
+        this.showMainText(
+          session,
+          updated ? `Lyric delay ${formatDelayMs(updated.lyricOffsetMs)}` : 'Delay update failed',
+        );
       }
     });
 
     const existing = this.interactionCleanup.get(sessionId) ?? [];
     this.interactionCleanup.set(sessionId, [...existing, cleanupVoice]);
   }
+}
+
+function formatDelayMs(value: number): string {
+  const seconds = (value / 1000).toFixed(1);
+  return `${seconds}s`;
 }

@@ -21,6 +21,12 @@ https://github.com/user-attachments/assets/bc6e4780-f9d0-4d90-8a0c-5dedd3c63da8
   - `spotify pause`
   - `spotify next`
   - `spotify previous`
+- Supports voice settings commands:
+  - `spotify chinese toggle`
+  - `spotify korean toggle`
+  - `spotify japanese toggle`
+  - `spotify delay increase`
+  - `spotify delay decrease`
 - Persists Spotify tokens and settings locally to reduce restart friction
 
 ## Quick Start

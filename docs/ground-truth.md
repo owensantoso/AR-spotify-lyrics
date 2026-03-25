@@ -35,6 +35,11 @@ It is not intended to be a general platform, multi-user service, or production-r
   - `spotify pause`
   - `spotify next`
   - `spotify previous`
+  - `spotify chinese toggle`
+  - `spotify korean toggle`
+  - `spotify japanese toggle`
+  - `spotify delay increase`
+  - `spotify delay decrease`
 
 ## Current Technical Constraints
 
