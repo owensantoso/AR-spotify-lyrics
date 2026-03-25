@@ -30,6 +30,10 @@ export function renderSettingsPage(userId: string | undefined, settings: UserSet
           Fix Chinese nai to ni
         </label>
         <label>
+          <input type="checkbox" name="fixChineseHuanToHai" value="1" ${settings.fixChineseHuanToHai ? 'checked' : ''} />
+          Fix Chinese huan to hai
+        </label>
+        <label>
           <input type="checkbox" name="showJapaneseRomanization" value="1" ${settings.showJapaneseRomanization ? 'checked' : ''} />
           Show romanization for Japanese lyric lines
         </label>

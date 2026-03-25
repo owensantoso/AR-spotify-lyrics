@@ -62,6 +62,18 @@ export class RomanizationService {
       });
     }
 
+    if (settings.fixChineseHuanToHai) {
+      result = result.replace(/\bhuan\b/gi, (match) => {
+        if (match === match.toUpperCase()) {
+          return 'HAI';
+        }
+        if (match[0] === match[0].toUpperCase()) {
+          return 'Hai';
+        }
+        return 'hai';
+      });
+    }
+
     if (settings.customRomanizationFrom && settings.customRomanizationTo) {
       result = result.split(settings.customRomanizationFrom).join(settings.customRomanizationTo);
     }

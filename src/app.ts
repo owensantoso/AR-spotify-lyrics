@@ -49,7 +49,7 @@ export class MentraLyricsApp extends AppServer {
       if (userId) {
         const settings = this.settings.updateFromQuery(userId, req.query);
         console.log(
-          `[Settings] Updated settings for ${userId}: showPinyin=${settings.showPinyin} fixChineseNaiToNi=${settings.fixChineseNaiToNi} showJapaneseRomanization=${settings.showJapaneseRomanization} showKoreanRomanization=${settings.showKoreanRomanization} showOriginalBelowRomanization=${settings.showOriginalBelowRomanization} lyricOffsetMs=${settings.lyricOffsetMs} customRomanizationFrom=${settings.customRomanizationFrom} customRomanizationTo=${settings.customRomanizationTo}`,
+          `[Settings] Updated settings for ${userId}: showPinyin=${settings.showPinyin} fixChineseNaiToNi=${settings.fixChineseNaiToNi} fixChineseHuanToHai=${settings.fixChineseHuanToHai} showJapaneseRomanization=${settings.showJapaneseRomanization} showKoreanRomanization=${settings.showKoreanRomanization} showOriginalBelowRomanization=${settings.showOriginalBelowRomanization} lyricOffsetMs=${settings.lyricOffsetMs} customRomanizationFrom=${settings.customRomanizationFrom} customRomanizationTo=${settings.customRomanizationTo}`,
         );
       }
 
@@ -71,6 +71,7 @@ export class MentraLyricsApp extends AppServer {
 
   protected async onSession(session: AppSession, sessionId: string, userId: string): Promise<void> {
     console.log(`[MentraOS] Session connected: sessionId=${sessionId} userId=${userId}`);
+    this.teardownSessionState(sessionId);
     this.settings.linkSession(sessionId, userId);
 
     if (!this.spotify.isConfigured()) {
@@ -97,29 +98,28 @@ export class MentraLyricsApp extends AppServer {
   }
 
   protected override async onStop(sessionId: string, userId: string, reason: string): Promise<void> {
-    const interval = this.lyricIntervals.get(sessionId);
-    if (interval) {
-      clearInterval(interval);
-      this.lyricIntervals.delete(sessionId);
-    }
-
-    this.lastDisplayedContent.delete(sessionId);
-    this.lastDisplaySentAt.delete(sessionId);
-    this.voiceCommandAt.delete(sessionId);
-    const cleanupHandlers = this.interactionCleanup.get(sessionId) ?? [];
-    cleanupHandlers.forEach((cleanup) => cleanup());
-    this.interactionCleanup.delete(sessionId);
+    this.teardownSessionState(sessionId);
     this.settings.unlinkSession(sessionId);
     await super.onStop(sessionId, userId, reason);
   }
 
   private showMainText(session: AppSession, message: string): void {
     console.log(`[MentraOS] Displaying: "${message.replace(/\n/g, ' | ')}"`);
-    session.layouts.showTextWall(message, {
-      view: ViewType.MAIN,
-      durationMs: this.holdDurationMs,
-      priority: true,
-    } as { view?: ViewType; durationMs?: number });
+    try {
+      session.layouts.showTextWall(message, {
+        view: ViewType.MAIN,
+        durationMs: this.holdDurationMs,
+        priority: true,
+      } as { view?: ViewType; durationMs?: number });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      if (reason.includes('WebSocket connection not established')) {
+        console.log('[MentraOS] Skipping display update because session WebSocket is not connected');
+        return;
+      }
+
+      throw error;
+    }
   }
 
   private showMainTextIfNeeded(session: AppSession, sessionId: string, content: string): void {
@@ -135,6 +135,22 @@ export class MentraLyricsApp extends AppServer {
     this.showMainText(session, content);
     this.lastDisplayedContent.set(sessionId, content);
     this.lastDisplaySentAt.set(sessionId, now);
+  }
+
+  private teardownSessionState(sessionId: string): void {
+    const interval = this.lyricIntervals.get(sessionId);
+    if (interval) {
+      clearInterval(interval);
+      this.lyricIntervals.delete(sessionId);
+    }
+
+    this.lastDisplayedContent.delete(sessionId);
+    this.lastDisplaySentAt.delete(sessionId);
+    this.voiceCommandAt.delete(sessionId);
+
+    const cleanupHandlers = this.interactionCleanup.get(sessionId) ?? [];
+    cleanupHandlers.forEach((cleanup) => cleanup());
+    this.interactionCleanup.delete(sessionId);
   }
 
   private async updateLyricsForSession(session: AppSession, sessionId: string): Promise<void> {
@@ -455,11 +471,15 @@ function formatTimestampMs(value: number): string {
 }
 
 function extractSpotifyCommandSeconds(text: string, command: 'skip' | 'back'): number | null {
-  if (!text.includes('spotify') || !text.includes(command)) {
+  if (!text.includes('spotify')) {
     return null;
   }
 
-  const match = text.match(new RegExp(`\\bspotify\\b(?:\\s+\\w+){0,4}\\s+\\b${command}\\b\\s+(\\d+(?:\\.\\d+)?)\\b`));
+  const variants = command === 'skip'
+    ? '(?:skip|skipped|skipping)'
+    : '(?:back|backed|backing)';
+
+  const match = text.match(new RegExp(`\\bspotify\\b(?:\\s+\\w+){0,4}\\s+${variants}\\s+(\\d+(?:\\.\\d+)?)\\b`));
   if (!match) {
     return null;
   }
@@ -473,7 +493,12 @@ function extractSpotifyCommandSeconds(text: string, command: 'skip' | 'back'): n
 }
 
 function matchesSkipToChorus(text: string): boolean {
-  if (!text.includes('spotify') || !text.includes('skip')) {
+  if (!text.includes('spotify')) {
+    return false;
+  }
+
+  const hasSkipWord = /\b(skip|skipped|skipping)\b/.test(text);
+  if (!hasSkipWord) {
     return false;
   }
 
@@ -482,9 +507,10 @@ function matchesSkipToChorus(text: string): boolean {
     return false;
   }
 
-  if (/\bspotify\b.*\bskip\b.*\b(the|to|too|two)\b.*\b(chorus|course|choris|corus)\b/.test(text)) {
+  if (/\bspotify\b.*\b(skip|skipped|skipping)\b.*\b(the|to|too|two)\b.*\b(chorus|course|choris|corus)\b/.test(text)) {
     return true;
   }
 
-  return /\bspotify\b.*\bskip\b.*\b(chorus|course|choris|corus)\b/.test(text) && extractSpotifyCommandSeconds(text, 'skip') === null;
+  return /\bspotify\b.*\b(skip|skipped|skipping)\b.*\b(chorus|course|choris|corus)\b/.test(text) &&
+    extractSpotifyCommandSeconds(text, 'skip') === null;
 }

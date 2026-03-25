@@ -40,6 +40,7 @@ export class SettingsStore {
       showOriginalBelowRomanization: query.showOriginalBelowRomanization === '1',
       lyricOffsetMs: this.parseLyricOffset(query.lyricOffsetMs),
       fixChineseNaiToNi: query.fixChineseNaiToNi === '1',
+      fixChineseHuanToHai: query.fixChineseHuanToHai === '1',
       customRomanizationFrom: this.parseTextSetting(query.customRomanizationFrom),
       customRomanizationTo: this.parseTextSetting(query.customRomanizationTo),
     };

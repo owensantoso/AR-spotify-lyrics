@@ -42,6 +42,7 @@ export type UserSettings = {
   showOriginalBelowRomanization: boolean;
   lyricOffsetMs: number;
   fixChineseNaiToNi: boolean;
+  fixChineseHuanToHai: boolean;
   customRomanizationFrom: string;
   customRomanizationTo: string;
 };
@@ -53,6 +54,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   showOriginalBelowRomanization: false,
   lyricOffsetMs: -500,
   fixChineseNaiToNi: true,
+  fixChineseHuanToHai: false,
   customRomanizationFrom: '',
   customRomanizationTo: '',
 };
