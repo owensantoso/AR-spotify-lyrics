@@ -246,10 +246,14 @@ export class MentraLyricsApp extends AppServer {
         return;
       }
 
+      const skipSeconds = extractSpotifyCommandSeconds(text, 'skip');
+      const backSeconds = extractSpotifyCommandSeconds(text, 'back');
       const isPause = /\bspotify\b.*\bpause\b/.test(text);
       const isPlay = /\bspotify\b.*\b(play|resume)\b/.test(text);
-      const isNext = /\bspotify\b.*\b(next|skip)\b/.test(text);
-      const isPrevious = /\bspotify\b.*\b(previous|prev|back)\b/.test(text);
+      const hasSkipWord = /\bspotify\b.*\bskip\b/.test(text);
+      const hasBackWord = /\bspotify\b.*\bback\b/.test(text);
+      const isNext = /\bspotify\b.*\bnext\b.*\bsong\b/.test(text) || (hasSkipWord && skipSeconds === null);
+      const isPrevious = /\bspotify\b.*\b(previous|prev)\b.*\bsong\b/.test(text) || (hasBackWord && backSeconds === null);
       const isChineseToggle = /\bspotify\b.*\bchinese\b.*\btoggle\b/.test(text);
       const isKoreanToggle = /\bspotify\b.*\bkorean\b.*\btoggle\b/.test(text);
       const isJapaneseToggle = /\bspotify\b.*\bjapanese\b.*\btoggle\b/.test(text);
@@ -257,6 +261,7 @@ export class MentraLyricsApp extends AppServer {
       const isDelayDecrease = /\bspotify\b.*\b(delay decrease|decrease delay)\b/.test(text);
 
       if (!isPause && !isPlay && !isNext && !isPrevious &&
+        skipSeconds === null && backSeconds === null &&
         !isChineseToggle && !isKoreanToggle && !isJapaneseToggle &&
         !isDelayIncrease && !isDelayDecrease) {
         return;
@@ -295,6 +300,26 @@ export class MentraLyricsApp extends AppServer {
           .catch((error) => {
             console.error(`[Spotify] Voice next failed for session ${sessionId}:`, error);
             this.showMainText(session, 'Next failed');
+          });
+        return;
+      }
+
+      if (skipSeconds !== null) {
+        void this.spotify.seekBySeconds(skipSeconds)
+          .then(() => this.showMainText(session, `Spotify skip +${skipSeconds}s`))
+          .catch((error) => {
+            console.error(`[Spotify] Voice skip failed for session ${sessionId}:`, error);
+            this.showMainText(session, 'Skip failed');
+          });
+        return;
+      }
+
+      if (backSeconds !== null) {
+        void this.spotify.seekBySeconds(-backSeconds)
+          .then(() => this.showMainText(session, `Spotify back -${backSeconds}s`))
+          .catch((error) => {
+            console.error(`[Spotify] Voice back failed for session ${sessionId}:`, error);
+            this.showMainText(session, 'Back failed');
           });
         return;
       }
@@ -362,4 +387,22 @@ export class MentraLyricsApp extends AppServer {
 function formatDelayMs(value: number): string {
   const seconds = (value / 1000).toFixed(1);
   return `${seconds}s`;
+}
+
+function extractSpotifyCommandSeconds(text: string, command: 'skip' | 'back'): number | null {
+  if (!text.includes('spotify') || !text.includes(command)) {
+    return null;
+  }
+
+  const match = text.match(new RegExp(`\\bspotify\\b(?:\\s+\\w+){0,4}\\s+\\b${command}\\b\\s+(\\d+(?:\\.\\d+)?)\\b`));
+  if (!match) {
+    return null;
+  }
+
+  const value = Number.parseFloat(match[1]);
+  if (!Number.isFinite(value) || value < 0) {
+    return null;
+  }
+
+  return Math.min(600, Math.round(value));
 }
