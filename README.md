@@ -6,7 +6,13 @@ Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/men
 
 ## Demo
 
+Basic lyrics functionality
 https://github.com/user-attachments/assets/bc6e4780-f9d0-4d90-8a0c-5dedd3c63da8
+
+Spotify control 
+https://github.com/user-attachments/assets/ea35be6e-1f91-4ffa-a3c4-2ff29c485dcf
+
+
 
 
 ## What It Does
@@ -67,9 +73,6 @@ https://<your-ngrok-url>/spotify/login
 ```
 8. Launch your app from Mentra iOS app / G1.
 
-## Notes on GitHub Video Embeds
-
-This README tries inline HTML `<video>` first and keeps a poster-image fallback link below it for compatibility.
 
 ## Useful Routes
 
@@ -77,3 +80,6 @@ This README tries inline HTML `<video>` first and keeps a poster-image fallback 
 - `/spotify/callback`
 - `/spotify/status`
 - `/webview`
+
+## Notes
+Voice commands can sometimes be mis-transcribed as others, such as "spotify skip to chorus" being transcribed to "spotify skipped chorus". Future work needs to either use a more accurate transcribing model (ideal), or at least add more of the common mis-trasncriptions to be interpreted as the intended command.
