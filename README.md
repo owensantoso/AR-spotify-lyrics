@@ -6,12 +6,13 @@ Project docs live under [`docs/README.md`](/Users/macintoso/Documents/VSCode/men
 
 ## Demo
 
-Basic lyrics functionality
+Basic lyrics functionality:
+
 https://github.com/user-attachments/assets/bc6e4780-f9d0-4d90-8a0c-5dedd3c63da8
 
-Spotify control 
-https://github.com/user-attachments/assets/ea35be6e-1f91-4ffa-a3c4-2ff29c485dcf
+Spotify control:
 
+https://github.com/user-attachments/assets/ea35be6e-1f91-4ffa-a3c4-2ff29c485dcf
 
 
 
